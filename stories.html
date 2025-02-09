@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stories - Women Connect & Safety Hub</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+
+    <script type="module">
+      import { getFirestore, collection, addDoc, doc, onSnapshot, updateDoc, deleteDoc, serverTimestamp } 
+      
+      from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+      // Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyCg0t9ccqZjbeLDWjycD6EQ5eSUiN9zqmI",
+        authDomain: "tinkerhack-fc7dd.firebaseapp.com",
+        projectId: "tinkerhack-fc7dd",
+        storageBucket: "tinkerhack-fc7dd.appspot.com",
+        messagingSenderId: "730913441307",
+        appId: "1:730913441307:web:c1550e138f5b9676659abe",
+      };
+
+      // Initialize Firebase
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      console.log("Firebase connected successfully!");
+
+      // Function to submit story
+      async function submitStory() {
+        const name = document.getElementById("name").value || "Anonymous";
+        const category = document.getElementById("storyCategory").value;
+        const storyText = document.getElementById("storyText").value;
+
+        if (storyText.trim() === "") {
+          alert("Please enter your story.");
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "stories"), {
+            name: name,
+            category: category,
+            story: storyText,
+            timestamp: serverTimestamp(),
+          });
+
+          alert("Story submitted successfully!");
+          document.getElementById("storyForm").reset(); // Clear form after submission
+        } catch (error) {
+          console.error("Error submitting story:", error);
+          alert("Failed to submit story. Please try again.");
+        }
+      }
+
+      // Function to submit passion
+      async function submitPassion() {
+        const name = document.getElementById("passionName").value || "Anonymous";
+        const passionText = document.getElementById("passionText").value;
+
+        if (passionText.trim() === "") {
+          alert("Please share your passion.");
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "passions"), {
+            name: name,
+            passion: passionText,
+            timestamp: serverTimestamp(),
+          });
+
+          alert("Passion shared successfully!");
+          document.getElementById("passionForm").reset(); // Clear form after submission
+        } catch (error) {
+          console.error("Error sharing passion:", error);
+          alert("Failed to share passion. Please try again.");
+        }
+      }
+
+      // Function to submit question
+      async function submitQuestion() {
+        const name = document.getElementById("questionName").value || "Anonymous";
+        const questionText = document.getElementById("questionText").value;
+
+        if (questionText.trim() === "") {
+          alert("Please enter your question.");
+          return;
+        }
+
+        try {
+          await addDoc(collection(db, "questions"), {
+            name: name,
+            question: questionText,
+            timestamp: serverTimestamp(),
+          });
+
+          alert("Question submitted successfully!");
+          document.getElementById("questionForm").reset(); // Clear form after submission
+        } catch (error) {
+          console.error("Error submitting question:", error);
+          alert("Failed to submit question. Please try again.");
+        }
+      }
+
+      // Attach event listeners to the buttons
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("submitBtn").addEventListener("click", submitStory);
+        document.getElementById("submitPassionBtn").addEventListener("click", submitPassion);
+        document.getElementById("submitQuestionBtn").addEventListener("click", submitQuestion);
+      });
+
+      function fetchStories() {
+    const storiesSection = document.querySelector(".section:last-child"); // Target the last section
+    let storiesContainer = document.getElementById("storiesContainer");
+
+    // Create container if it doesn't exist
+    if (!storiesContainer) {
+        storiesContainer = document.createElement("div");
+        storiesContainer.id = "storiesContainer";
+        storiesContainer.classList.add("story-grid"); // Add class for styling
+        storiesSection.appendChild(storiesContainer);
+    }
+
+    onSnapshot(collection(db, "stories"), (snapshot) => {
+        storiesContainer.innerHTML = ""; // Clear previous entries
+
+        snapshot.forEach((doc) => {
+            const { name, category, story, timestamp } = doc.data();
+            const storyId = doc.id;
+            const date = timestamp ? timestamp.toDate().toLocaleString() : "Unknown Date";
+
+            // Create a card element
+            const storyCard = document.createElement("div");
+            storyCard.classList.add("story-card");
+            storyCard.innerHTML = `
+                <h3>${category.toUpperCase()}</h3>
+                <p><strong>${name}</strong></p>
+                <p>${story}</p>
+                <p><small>${date}</small></p>
+                <button onclick="editStory('${storyId}', '${story}')">Edit</button>
+                <button onclick="deleteStory('${storyId}')">Delete</button>
+            `;
+
+            storiesContainer.appendChild(storyCard);
+        });
+
+        if (snapshot.empty) {
+            storiesContainer.innerHTML = "<p>No stories available yet.</p>";
+        }
+    });
+}
+
+fetchStories();
+    </script>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f8f9fa;
+        margin: 0;
+        padding: 0;
+        color: #333;
+      }
+      header {
+        background-color: #d63384;
+        color: white;
+        padding: 20px;
+        text-align: center;
+      }
+      nav ul {
+        list-style-type: none;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+      }
+      nav ul li a {
+        color: white;
+        text-decoration: none;
+        font-weight: bold;
+      }
+      .container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+      }
+      .section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .section h2 {
+        color: #d63384;
+        margin-bottom: 20px;
+      }
+      input, textarea, select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+      }
+      textarea {
+        height: 150px;
+      }
+      button {
+        background-color: #d63384;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:hover {
+        background-color: #b32465;
+      }
+      footer {
+        background-color: #d63384;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        margin-top: 20px;
+      }
+      .inspirational-stories {
+        margin-top: 20px;
+      }
+      .inspirational-stories select {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .inspirational-stories .story-content {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        border: 1px solid #ddd;
+      }
+
+      .story-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.story-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 280px;
+    text-align: center;
+}
+
+.story-card h3 {
+    color: #d63384;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.story-card p {
+    font-size: 14px;
+    color: #555;
+}
+
+.story-card button {
+    background-color: #d63384;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 5px;
+}
+
+.story-card button:hover {
+    background-color: #b32465;
+}
+
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Women Connect & Safety Hub</h1>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="stories.html">Stories</a></li>
+          <li><a href="safety.html">Safety</a></li>
+          <li><a href="community.html">Community</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="container">
+      <section class="section">
+        <h2>Share Your Experience</h2>
+        <form id="storyForm">
+          <input type="text" id="name" placeholder="Your Name (Optional)" />
+          <select id="storyCategory">
+            <option value="life">Life</option>
+            <option value="movement">Movement</option>
+            <option value="success">Success</option>
+            <option value="failure">Failure</option>
+          </select>
+          <textarea
+            id="storyText"
+            placeholder="Write your story here..."
+          ></textarea>
+          <button type="button" id="submitBtn">Share Story</button>
+        </form>
+      </section>
+
+      <section class="section">
+        <h2>Passion Potpourri 🎨✨</h2>
+        <p>Share your passion—cooking, art, coding, or anything else! No judgments here—just pure fun!</p>
+        <form id="passionForm">
+          <input type="text" id="passionName" placeholder="Your Name (Optional)" />
+          <textarea
+            id="passionText"
+            placeholder="Write about your passion..."
+          ></textarea>
+          <button type="button" id="submitPassionBtn">Share Passion</button>
+        </form>
+      </section>
+
+      <section class="section">
+        <h2>Open Minds</h2>
+        <form id="questionForm">
+          <input type="text" id="questionName" placeholder="Your Name (Optional)" />
+          <textarea
+            id="questionText"
+            placeholder="Ask anything..."
+          ></textarea>
+          <button type="button" id="submitQuestionBtn">Ask Question</button>
+        </form>
+      </section>
+
+      <section class="section">
+        <h2>Story Vault 📚</h2>
+        <p>Read and share stories from women around the world.</p>
+        
+        <button id="showStories">Show Saved Stories</button>
+        
+        <ul id="storiesList"></ul>
+      </section>
+      
+      <script type="module">
+     // Firebase configuration
+  
+      
+        // Function to fetch stories from Firestore
+        async function fetchStoryVault() {
+  const storiesList = document.getElementById("storiesList");
+  storiesList.innerHTML = ""; // Clear previous content
+
+  try {
+    const querySnapshot = await getDocs(collection(db, "story_vault")); // Fetch from "story_vault" collection
+    
+    querySnapshot.forEach((doc) => {
+      const story = doc.data();
+      const li = document.createElement("li");
+      li.textContent = `${story.title} - ${story.author}`;
+      storiesList.appendChild(li);
+    });
+  } catch (error) {
+    console.error("Error fetching stories:", error);
+  }
+}
+
+// Event listener for the button
+document.getElementById("showStories").addEventListener("click", fetchStoryVault);
+
+      </script>
+      
+
+      <section class="section inspirational-stories">
+        <h2>Inspirational Stories 🌟</h2>
+        <p>Select a story to read and get inspired!</p>
+        <select id="inspirationalStories">
+          <option value="">Select a story</option>
+          <option value="story1">Malala Yousafzai - Education Activist</option>
+          <option value="story2">Serena Williams - Tennis Legend</option>
+          <option value="story3">Marie Curie - Pioneer in Science</option>
+          <option value="story4">Rosa Parks - Civil Rights Icon</option>
+          <option value="story5">Oprah Winfrey - Media Mogul</option>
+          <option value="story6">Ada Lovelace - First Computer Programmer</option>
+          <option value="story7">Frida Kahlo - Iconic Artist</option>
+          <option value="story8">Amelia Earhart - Aviation Pioneer</option>
+          <option value="story9">Maya Angelou - Poet and Activist</option>
+          <option value="story10">Greta Thunberg - Climate Activist</option>
+        </select>
+        <div class="story-content" id="storyContent">
+          <!-- Story content will be displayed here -->
+        </div>
+      </section>
+    </div>
+
+    <footer>
+      <p>© 2025 Women Connect & Safety Hub | Empowering Women Every Day</p>
+    </footer>
+
+    <script>
+      // Inspirational stories content
+      const stories = {
+        story1: "Malala Yousafzai is a Pakistani activist for female education and the youngest Nobel Prize laureate. She advocates for girls' education worldwide, despite facing life-threatening challenges.",
+        story2: "Serena Williams is one of the greatest tennis players of all time. She has won 23 Grand Slam singles titles and is a symbol of strength, resilience, and excellence.",
+        story3: "Marie Curie was a pioneering physicist and chemist who conducted groundbreaking research on radioactivity. She was the first woman to win a Nobel Prize and remains an inspiration in science.",
+        story4: "Rosa Parks was an American civil rights activist whose refusal to give up her bus seat to a white man sparked the Montgomery Bus Boycott and became a pivotal moment in the Civil Rights Movement.",
+        story5: "Oprah Winfrey is a media mogul, talk show host, and philanthropist. She overcame a difficult childhood to become one of the most influential women in the world.",
+        story6: "Ada Lovelace is considered the first computer programmer. She wrote the first algorithm intended for a machine and foresaw the potential of computers beyond mere calculation.",
+        story7: "Frida Kahlo was a Mexican painter known for her self-portraits and works inspired by nature and artifacts of Mexico. She is celebrated for her unique style and resilience.",
+        story8: "Amelia Earhart was the first female aviator to fly solo across the Atlantic Ocean. She broke numerous records and inspired generations of women to pursue aviation.",
+        story9: "Maya Angelou was an American poet, memoirist, and civil rights activist. Her works, including 'I Know Why the Caged Bird Sings,' continue to inspire and empower people worldwide.",
+        story10: "Greta Thunberg is a Swedish environmental activist who has gained international recognition for her efforts to combat climate change and inspire global action.",
+      };
+
+      // Display selected story
+      document.getElementById("inspirationalStories").addEventListener("change", function () {
+        const selectedStory = this.value;
+        const storyContent = document.getElementById("storyContent");
+        storyContent.textContent = stories[selectedStory] || "Select a story to read.";
+      });
+    </script>
+  </body>
+</html>
